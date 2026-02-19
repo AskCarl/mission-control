@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, GitBranch, LayoutDashboard, Library, NotebookPen, Users, Workflow } from "lucide-react";
+import { BrainCircuit, Calendar, GitBranch, LayoutDashboard, Library, NotebookPen, Users, Workflow } from "lucide-react";
 import { clsx } from "clsx";
 import { GlobalQuickAdd } from "./global-quick-add";
 
@@ -13,6 +13,7 @@ const nav = [
   { href: "/memory", label: "Memory", icon: Library },
   { href: "/team", label: "Team", icon: Users },
   { href: "/office", label: "Office", icon: Workflow },
+  { href: "/research", label: "Research", icon: BrainCircuit },
   { href: "/review", label: "Weekly Review", icon: NotebookPen },
 ];
 

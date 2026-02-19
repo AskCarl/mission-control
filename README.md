@@ -24,6 +24,7 @@ app/
   team/page.tsx            # Team structure
   office/page.tsx          # Digital office
   review/page.tsx          # Weekly review module
+  research/page.tsx        # Autonomous Research Analyst module
 components/
   layout/app-shell.tsx     # Unified nav + shell
   modules/*                # Module UI blocks
@@ -52,7 +53,33 @@ lib/
 ✅ Agent utilization panel
 ✅ Global Quick Add bar (mock action)
 ✅ Weekly Review page
+✅ Autonomous Research Analyst module
 
+### Autonomous Research Analyst (v1 scaffold)
+✅ Dedicated `/research` screen with:
+- What Changed (since prior run)
+- Top Opportunities
+- Top Risks
+- Sector/Asset Sentiment
+- Action Checklist
+- Sources + Confidence
+- Outside Core Focus
+- Run History scaffold
+
+✅ Model routing service layer (adapter pattern):
+- Grok adapter: social pulse/sentiment/catalyst chatter (mock)
+- Perplexity adapter: sourced research/citations (mock)
+- DeepSeek adapter: deep analysis/scenario framing (mock)
+- Local synthesizer combines outputs into one concise brief
+
+✅ Portfolio-aware hook:
+- Reads `/Users/carlbot/.openclaw/workspace/memory/sean-portfolio.md` when available
+- Falls back to mock context when file is unavailable
+
+⚠️ Placeholder/TODO:
+- Live API wiring for Grok/Perplexity/DeepSeek
+- Optional dedicated synthesis model adapter
+- Persistent run-history storage (currently in-memory mock scaffold)
 
 ### 1) Content Pipeline
 ✅ Kanban-style stage columns (Idea → Published)
@@ -123,6 +150,7 @@ Add screenshots to `docs/screenshots/`:
 - `team.png`
 - `office.png`
 - `weekly-review.png`
+- `research.png`
 
 Tip: Use these in the README so skeptics can scan value in <30s.
 
@@ -144,6 +172,15 @@ npm install
 npm run dev
 ```
 Open http://localhost:3000
+
+### Optional model keys (for future live wiring)
+```bash
+# TODO wiring in lib/research/adapters.ts
+export XAI_API_KEY=...
+export PERPLEXITY_API_KEY=...
+export DEEPSEEK_API_KEY=...
+```
+If keys are missing, research module remains fully local/mock-backed by design.
 
 ### Run Convex (optional live backend wiring)
 ```bash
