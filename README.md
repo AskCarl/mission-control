@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mission Control v1 (Next.js + Convex)
 
-## Getting Started
+Mission Control is a modular operations dashboard for Sean + Carl, built from the provided specs:
+- Content Pipeline
+- Calendar / Scheduled Work
+- Memory Screen + Search
+- Team Structure
+- Digital Office
 
-First, run the development server:
+## Tech Stack
+- Next.js (App Router, TypeScript)
+- Tailwind CSS v4
+- Convex (schema + server functions scaffolded)
+- Mock/seed fallback data for safe local iteration
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Project Structure
+
+```txt
+app/
+  page.tsx                 # Dashboard
+  pipeline/page.tsx        # Content pipeline module
+  calendar/page.tsx        # Scheduled tasks calendar/agenda
+  memory/page.tsx          # Memory feed + search
+  team/page.tsx            # Team structure
+  office/page.tsx          # Digital office
+components/
+  layout/app-shell.tsx     # Unified nav + shell
+  modules/*                # Module UI blocks
+  ui/primitives.tsx        # Shared design system primitives
+convex/
+  schema.ts                # Data model for all modules
+  content.ts               # Content queries/mutations
+  calendar.ts              # Scheduled task queries/mutations
+  memory.ts                # Memory search + quality control
+  team.ts                  # Team/assignment functions
+  office.ts                # Presence functions
+  seed.ts                  # Seed mutation
+lib/
+  mock-data.ts             # v1 mock data
+  types.ts                 # shared types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What's Implemented (v1)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1) Content Pipeline
+✅ Kanban-style stage columns (Idea → Published)
+✅ Card metadata (owner, priority, tags, due date)
+✅ Today attention panel with Carl automation hints
+✅ Convex table + create/update stage functions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+⚠️ Placeholder for v2/full integration:
+- Real drag/drop persistence
+- Rich-text editor + file upload pipeline
+- Automated stale >48h alerts as background jobs
 
-## Learn More
+### 2) Mission Calendar
+✅ Agenda with source/owner/status/run-time visibility
+✅ Health metrics (attention/on-schedule summary)
+✅ Convex scheduled tasks model + upsert function
 
-To learn more about Next.js, take a look at the following resources:
+⚠️ Placeholder:
+- Full day/week/month visual calendar grid
+- External cron/job sync adapter
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3) Memory Screen
+✅ Memory feed UI with source metadata
+✅ Instant search + `/` keyboard focus
+✅ Pin/status model in Convex schema
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+⚠️ Placeholder:
+- File watcher indexer from MEMORY.md + memory/*.md
+- Conversation snippet linkage + dedupe workflows
 
-## Deploy on Vercel
+### 4) Team Structure
+✅ Team cards for Carl/Codezer/Scribe/Forge
+✅ Responsibilities panel + current assignment visibility
+✅ Convex agents + assignments schema
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+⚠️ Placeholder:
+- Real subagent runtime sync
+- Spawn/retire/pause controls wired to orchestration backend
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 5) Digital Office
+✅ Office stations with real-time style statuses (mock)
+✅ Efficiency strip (active/idle/blocked)
+✅ Quick action buttons (UI scaffold)
+✅ Convex office presence schema/functions
+
+⚠️ Placeholder:
+- Live presence stream subscriptions
+- Animated office states
+
+## Setup
+
+### Prerequisites
+- Node.js 20+
+- npm
+- Convex account/project (for live backend mode)
+
+### Install
+```bash
+cd /Users/carlbot/projects/mission-control
+npm install
+```
+
+### Run UI (mock-backed)
+```bash
+npm run dev
+```
+Open http://localhost:3000
+
+### Run Convex (optional live backend wiring)
+```bash
+npm run convex:dev
+```
+
+### Build + lint
+```bash
+npm run lint
+npm run build
+```
+
+## Notes
+- Current UI is intentionally safe/local and does not deploy.
+- Convex schema/functions are production-oriented scaffolding; UI is currently bound to mock data to keep v1 deterministic.
+- `convex/seed.ts` provides starter records once Convex runtime is connected.
