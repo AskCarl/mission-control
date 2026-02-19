@@ -63,4 +63,50 @@ export type OfficePresence = {
   state: "working" | "idle" | "blocked" | "offline";
   currentTask?: string;
   workstationPosition: string;
+  blockedSince?: string;
+};
+
+export type FocusTask = {
+  id: string;
+  title: string;
+  owner: "Carl" | "Sean";
+  estimateHours: number;
+  status: "on-track" | "at-risk";
+};
+
+export type ProjectProgress = {
+  id: string;
+  project: string;
+  owner: "Carl" | "Sean" | "Shared";
+  progress: number;
+  milestone: string;
+  dueDate: string;
+};
+
+export type WorkflowCard = {
+  id: string;
+  period: "AM" | "PM";
+  title: string;
+  checklist: string[];
+  owner: "Carl" | "Sean" | "Shared";
+};
+
+export type AgentUtilization = {
+  agentId: string;
+  agentName: string;
+  capacityHours: number;
+  allocatedHours: number;
+};
+
+export type QuickAddTemplate = {
+  id: string;
+  label: string;
+  placeholder: string;
+};
+
+export type WeeklyReviewItem = {
+  id: string;
+  category: "wins" | "misses" | "next";
+  title: string;
+  detail: string;
 };

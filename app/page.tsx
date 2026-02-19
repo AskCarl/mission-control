@@ -1,3 +1,8 @@
+import { AgentUtilizationPanel } from "@/components/modules/agent-utilization-panel";
+import { FlowAlertsPanel } from "@/components/modules/flow-alerts-panel";
+import { FocusThreeWidget } from "@/components/modules/focus-three-widget";
+import { ProjectProgressPanel } from "@/components/modules/project-progress-panel";
+import { WorkflowCards } from "@/components/modules/workflow-cards";
 import { Panel } from "@/components/ui/primitives";
 import { contentCards, memoryEntries, officePresence, scheduledTasks, teamAgents } from "@/lib/mock-data";
 
@@ -12,13 +17,15 @@ export default function HomePage() {
         <Panel><p className="text-sm text-slate-400">Team Agents</p><p className="text-2xl font-bold">{teamAgents.length}</p></Panel>
         <Panel><p className="text-sm text-slate-400">Active Office</p><p className="text-2xl font-bold">{officePresence.filter((a) => a.state === "working").length}</p></Panel>
       </div>
-      <Panel>
-        <h3 className="mb-2 font-semibold">v1 status</h3>
-        <p className="text-sm text-slate-300">
-          All requested modules are scaffolded with shared design system, navigation, and Convex schema/functions.
-          UI currently runs with mock seed data for safe local development.
-        </p>
-      </Panel>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <FocusThreeWidget />
+        <ProjectProgressPanel />
+        <FlowAlertsPanel />
+      </div>
+
+      <WorkflowCards />
+      <AgentUtilizationPanel />
     </div>
   );
 }

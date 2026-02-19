@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, GitBranch, LayoutDashboard, Library, Users, Workflow } from "lucide-react";
+import { Calendar, GitBranch, LayoutDashboard, Library, NotebookPen, Users, Workflow } from "lucide-react";
 import { clsx } from "clsx";
+import { GlobalQuickAdd } from "./global-quick-add";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -12,6 +13,7 @@ const nav = [
   { href: "/memory", label: "Memory", icon: Library },
   { href: "/team", label: "Team", icon: Users },
   { href: "/office", label: "Office", icon: Workflow },
+  { href: "/review", label: "Weekly Review", icon: NotebookPen },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -41,7 +43,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </aside>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          <GlobalQuickAdd />
+          {children}
+        </main>
       </div>
     </div>
   );

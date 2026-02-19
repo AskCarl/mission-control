@@ -23,6 +23,7 @@ app/
   memory/page.tsx          # Memory feed + search
   team/page.tsx            # Team structure
   office/page.tsx          # Digital office
+  review/page.tsx          # Weekly review module
 components/
   layout/app-shell.tsx     # Unified nav + shell
   modules/*                # Module UI blocks
@@ -40,7 +41,18 @@ lib/
   types.ts                 # shared types
 ```
 
-## What's Implemented (v1)
+## What's Implemented (v1.1 optimization pass)
+
+### New in v1.1
+✅ Focus 3 widget (daily top priorities)
+✅ Project Progress module with milestone tracking
+✅ WIP limit warnings panel
+✅ Blocked >24h escalation alert
+✅ AM/PM workflow cards
+✅ Agent utilization panel
+✅ Global Quick Add bar (mock action)
+✅ Weekly Review page
+
 
 ### 1) Content Pipeline
 ✅ Kanban-style stage columns (Idea → Published)
