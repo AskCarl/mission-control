@@ -136,3 +136,14 @@ npm run build
 - Current UI is intentionally safe/local and does not deploy.
 - Convex schema/functions are production-oriented scaffolding; UI is currently bound to mock data to keep v1 deterministic.
 - `convex/seed.ts` provides starter records once Convex runtime is connected.
+
+## Demo Walkthrough
+
+- Open dashboard: `http://localhost:3000`
+- Review Focus 3, Project Progress, Flow Alerts, AM/PM cards, and Agent Utilization.
+- Use Global Quick Add from any screen to capture tasks/ideas/memory.
+- Open Weekly Review: `http://localhost:3000/review`
+
+## Built For
+
+Mission Control for OpenClaw operations with modular views for tasks, calendar, memory, team, office, and productivity optimization.
