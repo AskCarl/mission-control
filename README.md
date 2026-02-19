@@ -102,6 +102,30 @@ lib/
 - Live presence stream subscriptions
 - Animated office states
 
+
+## Quick Start (60 seconds)
+
+```bash
+cd /Users/carlbot/projects/mission-control
+npm install
+npm run dev
+```
+
+Then open: `http://localhost:3000`
+
+## Screenshots Checklist (for GitHub polish)
+
+Add screenshots to `docs/screenshots/`:
+- `dashboard.png`
+- `pipeline.png`
+- `calendar.png`
+- `memory.png`
+- `team.png`
+- `office.png`
+- `weekly-review.png`
+
+Tip: Use these in the README so skeptics can scan value in <30s.
+
 ## Setup
 
 ### Prerequisites
