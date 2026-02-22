@@ -602,7 +602,7 @@ async function runDeepSeekAdapter(input: {
 
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const GEMINI_MODEL = "gemini-3-flash-preview";
-const GEMINI_TIMEOUT_MS = 45_000;
+const GEMINI_TIMEOUT_MS = 60_000;
 
 class GeminiAdapterError extends Error {
   constructor(

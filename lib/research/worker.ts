@@ -296,7 +296,10 @@ export async function processTask(
   }
 
   const brief = synthesizeBrief(successOutputs, domains);
-  brief.portfolioContext = portfolioContext;
+  // Keep portfolio context local — strip rawExcerpt before persisting to Convex
+  brief.portfolioContext = portfolioContext
+    ? { source: portfolioContext.source, highlights: portfolioContext.highlights }
+    : undefined;
 
   console.log(
     `[ara-worker] task=${task.id} state=completed confidence=${brief.confidenceAggregate} adapters_ok=${successOutputs.length}/${adapterResults.length}`
