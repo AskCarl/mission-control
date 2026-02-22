@@ -85,4 +85,50 @@ export default defineSchema({
     avatarStyle: v.string(),
     updatedAt: v.number(),
   }),
+
+  researchTasks: defineTable({
+    // app-level identity (separate from Convex _id)
+    taskId: v.string(),
+    idempotencyKey: v.optional(v.string()),
+    taskType: v.literal("autonomous_research"),
+
+    // state machine
+    state: v.union(
+      v.literal("queued"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+
+    // request envelope
+    title: v.string(),
+    prompt: v.string(),
+    domain: v.optional(v.string()),
+    requestedBy: v.optional(v.string()),
+
+    // orchestration metadata
+    adapterSequence: v.array(v.string()),
+    currentAdapterId: v.optional(v.string()),
+    assignedWorkerId: v.optional(v.string()),
+    attempt: v.number(),
+    maxAttempts: v.number(),
+    retryPolicy: v.any(),
+
+    // timing
+    createdAtMs: v.number(),
+    queuedAtMs: v.optional(v.number()),
+    startedAtMs: v.optional(v.number()),
+    updatedAtMs: v.number(),
+    completedAtMs: v.optional(v.number()),
+    failedAtMs: v.optional(v.number()),
+    nextRetryAtMs: v.optional(v.number()),
+
+    // outcome — stored as any to accommodate deep nested types
+    result: v.optional(v.any()),
+    failure: v.optional(v.any()),
+    history: v.optional(v.any()),
+  })
+    .index("by_taskId", ["taskId"])
+    .index("by_state", ["state"])
+    .index("by_idempotencyKey", ["idempotencyKey"]),
 });

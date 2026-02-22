@@ -12,7 +12,7 @@ export type ResearchFinding = {
   detail: string;
   domain: ResearchDomain | "outside-core";
   confidence: number;
-  sourceModel: "grok" | "perplexity" | "deepseek" | "synth";
+  sourceModel: "grok" | "perplexity" | "deepseek" | "gemini" | "claude" | "synth";
   citations?: string[];
 };
 
@@ -24,7 +24,7 @@ export type SentimentRow = {
 };
 
 export type ResearchModelOutput = {
-  model: "grok" | "perplexity" | "deepseek";
+  model: "grok" | "perplexity" | "deepseek" | "gemini" | "claude";
   whatChanged: ResearchFinding[];
   opportunities: ResearchFinding[];
   risks: ResearchFinding[];
@@ -57,10 +57,93 @@ export type ResearchRunHistoryEntry = {
 };
 
 export type ResearchModelAdapter = {
-  name: "grok" | "perplexity" | "deepseek";
+  name: "grok" | "perplexity" | "deepseek" | "gemini" | "claude";
   run: (input: {
     domains: ResearchDomain[];
     portfolioContext: PortfolioContext;
     priorRun?: ResearchRunHistoryEntry;
   }) => Promise<ResearchModelOutput>;
 };
+
+// ---------------------------------------------------------------------------
+// ARA orchestration primitives (additive — do not replace above)
+// ---------------------------------------------------------------------------
+
+export type TaskState = "queued" | "running" | "completed" | "failed";
+
+export type RetryErrorCode =
+  | "RATE_LIMITED"
+  | "AUTH_FAILED"
+  | "NETWORK_ERROR"
+  | "TIMEOUT"
+  | "PROVIDER_ERROR"
+  | "VALIDATION_ERROR"
+  | "BACKEND_UNAVAILABLE"
+  | "UNKNOWN";
+
+export interface RetryPolicy {
+  maxAttempts: number;
+  baseDelayMs: number;
+  backoffMultiplier: number;
+  maxDelayMs: number;
+  retryableErrorCodes: RetryErrorCode[];
+  jitter?: boolean;
+}
+
+export interface AdapterResult {
+  adapterId: string;
+  model?: string;
+  ok: boolean;
+  shadow?: boolean;
+  findings?: ResearchFinding[];
+  brief?: ResearchBrief;
+  sentimentRows?: SentimentRow[];
+  providerRequestId?: string;
+  latencyMs: number;
+  tokensIn?: number;
+  tokensOut?: number;
+  raw?: unknown;
+  errorCode?: RetryErrorCode;
+  errorMessage?: string;
+  httpStatus?: number;
+}
+
+export interface TaskRecord {
+  id: string;
+  taskType: "autonomous_research";
+  state: TaskState;
+  title: string;
+  prompt: string;
+  domain?: ResearchDomain;
+  portfolioContext?: PortfolioContext;
+  requestedBy?: string;
+  assignedWorkerId?: string;
+  adapterSequence: string[];
+  currentAdapterId?: string;
+  retryPolicy: RetryPolicy;
+  attempt: number;
+  maxAttempts: number;
+  idempotencyKey?: string;
+  createdAtMs: number;
+  queuedAtMs?: number;
+  startedAtMs?: number;
+  updatedAtMs: number;
+  completedAtMs?: number;
+  failedAtMs?: number;
+  nextRetryAtMs?: number;
+  result?: {
+    modelOutput?: ResearchModelOutput;
+    brief?: ResearchBrief;
+    findings?: ResearchFinding[];
+    adapterResults?: AdapterResult[];
+  };
+  failure?: {
+    errorCode: RetryErrorCode;
+    message: string;
+    retryable: boolean;
+    adapterId?: string;
+    attempt: number;
+    stack?: string;
+  };
+  history?: ResearchRunHistoryEntry[];
+}
