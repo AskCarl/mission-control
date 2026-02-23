@@ -34,7 +34,7 @@ export const weeklySnapshot: ResolutionWeekly = {
   readingMinutesThisMonth: 260,
   readingTarget: 900,
   cashflowProject: {
-    name: "MFH",
+    name: "Cashflow Real Estate",
     status: "research",
     nextStep: "Shortlist 3 brokers for comp pulls",
   },

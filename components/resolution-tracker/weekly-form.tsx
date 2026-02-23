@@ -95,14 +95,14 @@ export function WeeklyReviewForm({ data }: { data: ResolutionWeekly }) {
         onChange={(event) => update("nextStep", event.target.value)}
         placeholder="One concrete step for next week..."
       />
-      <label className="text-sm font-medium">Active cashflow project</label>
+      <label className="text-sm font-medium">Active income stream</label>
       <input
         className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
         value={form.activeCashflowProject}
         onChange={(event) => update("activeCashflowProject", event.target.value)}
-        placeholder="MFH, Tesla, New Business..."
+        placeholder="Cashflow Real Estate, AI-Driven Business Build..."
       />
-      <label className="text-sm font-medium">Project status</label>
+      <label className="text-sm font-medium">Income stream status</label>
       <input
         className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
         value={form.projectStatus}

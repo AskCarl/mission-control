@@ -47,7 +47,7 @@ export default function ResolutionWeeklyPage() {
           <p className="text-xs text-slate-500">Monthly target</p>
         </Panel>
         <Panel>
-          <p className="text-sm text-slate-400">Cash Flow Project</p>
+          <p className="text-sm text-slate-400">New Income Streams</p>
           <p className="text-lg font-semibold">{snapshot.cashflowProject.name}</p>
           <p className="text-sm text-slate-300">Status: {snapshot.cashflowProject.status}</p>
           <p className="text-xs text-slate-500">Next step: {snapshot.cashflowProject.nextStep}</p>
