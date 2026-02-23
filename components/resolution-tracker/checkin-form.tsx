@@ -5,7 +5,7 @@ import { Panel } from "@/components/ui/primitives";
 import { saveDaily } from "@/lib/resolution-tracker/api";
 import type { ScoreWeights } from "@/lib/resolution-tracker/types";
 
-const workoutTypes = ["swim", "resistance", "yoga", "walk", "other"] as const;
+const workoutTypes = ["swim", "resistance", "yoga", "walk", "cycling", "golf", "other"] as const;
 
 type WorkoutType = (typeof workoutTypes)[number] | "";
 
@@ -14,6 +14,7 @@ type CheckinState = {
   fastingDone: boolean;
   fakeSugarAvoided: boolean;
   sweetsControlled: boolean;
+  avoidArtificialSweeteners: boolean;
   gutHealthSupport: boolean;
   workoutDone: boolean;
   workoutType: WorkoutType;
@@ -30,6 +31,7 @@ const defaultState: CheckinState = {
   fastingDone: false,
   fakeSugarAvoided: false,
   sweetsControlled: false,
+  avoidArtificialSweeteners: false,
   gutHealthSupport: false,
   workoutDone: false,
   workoutType: "",
@@ -56,8 +58,9 @@ function computeScore(state: CheckinState, weights: ScoreWeights = defaultWeight
     (state.antiInflammatory ? 10 : 0) +
     (state.fakeSugarAvoided ? 10 : 0) +
     (state.sweetsControlled ? 5 : 0) +
+    (state.avoidArtificialSweeteners ? 10 : 0) +
     (state.gutHealthSupport ? 10 : 0);
-  score += (weights.nutrition / 35) * nutritionBase;
+  score += (weights.nutrition / 45) * nutritionBase;
 
   const fitnessBase = (state.workoutDone ? 15 : 0) + (state.lowImpactFlex ? 10 : 0);
   score += (weights.fitness / 25) * fitnessBase;
@@ -101,6 +104,7 @@ export function CheckinForm({ scoreWeights = defaultWeights }: { scoreWeights?: 
       fastingDone: state.fastingDone,
       fakeSugarAvoided: state.fakeSugarAvoided,
       sweetsControlled: state.sweetsControlled,
+      avoidArtificialSweeteners: state.avoidArtificialSweeteners,
       gutHealthSupport: state.gutHealthSupport,
       workoutDone: state.workoutDone,
       workoutType: state.workoutType || null,
@@ -132,9 +136,22 @@ export function CheckinForm({ scoreWeights = defaultWeights }: { scoreWeights?: 
 
       <Panel className="space-y-3">
         <ToggleRow label="Anti-inflammatory day" checked={state.antiInflammatory} onChange={(value) => setField("antiInflammatory", value)} />
+        <ToggleRow
+          label="Low carb diet (under 100 grams)"
+          checked={state.fakeSugarAvoided}
+          onChange={(value) => setField("fakeSugarAvoided", value)}
+        />
+        <ToggleRow
+          label="Limited processed food"
+          checked={state.sweetsControlled}
+          onChange={(value) => setField("sweetsControlled", value)}
+        />
+        <ToggleRow
+          label="Avoid artificial sweeteners"
+          checked={state.avoidArtificialSweeteners}
+          onChange={(value) => setField("avoidArtificialSweeteners", value)}
+        />
         <ToggleRow label="Fasting completed" checked={state.fastingDone} onChange={(value) => setField("fastingDone", value)} helper="Only on scheduled fasting days" />
-        <ToggleRow label="Fake sugar avoided" checked={state.fakeSugarAvoided} onChange={(value) => setField("fakeSugarAvoided", value)} />
-        <ToggleRow label="Sweets controlled" checked={state.sweetsControlled} onChange={(value) => setField("sweetsControlled", value)} />
         <ToggleRow label="Gut-health supportive meals" checked={state.gutHealthSupport} onChange={(value) => setField("gutHealthSupport", value)} />
       </Panel>
 
@@ -150,10 +167,26 @@ export function CheckinForm({ scoreWeights = defaultWeights }: { scoreWeights?: 
       </Panel>
 
       <Panel className="space-y-3">
-        <RangeRow label="Alcohol drinks" value={state.alcoholDrinks} min={0} max={5} onChange={(value) => setField("alcoholDrinks", value)} />
-        <RangeRow label="Nicotine level" value={state.nicotineLevel} min={0} max={10} onChange={(value) => setField("nicotineLevel", value)} />
+        <RangeRow
+          label="Alcohol per 2 oz pour"
+          value={state.alcoholDrinks}
+          min={0}
+          max={5}
+          onChange={(value) => setField("alcoholDrinks", value)}
+        />
+        <RangeRow
+          label="Nicotine level per 3 mg"
+          value={state.nicotineLevel}
+          min={0}
+          max={10}
+          onChange={(value) => setField("nicotineLevel", value)}
+        />
         <RangeRow label="Reading / listening minutes" value={state.readingMinutes} min={0} max={180} step={5} onChange={(value) => setField("readingMinutes", value)} />
-        <ToggleRow label="Frugal day" checked={state.frugalDay} onChange={(value) => setField("frugalDay", value)} />
+        <ToggleRow
+          label="Cost conscious - stayed within budget"
+          checked={state.frugalDay}
+          onChange={(value) => setField("frugalDay", value)}
+        />
       </Panel>
 
       <Panel className="space-y-2">

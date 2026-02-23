@@ -147,6 +147,7 @@ export default defineSchema({
     fastingDone: v.boolean(),
     fakeSugarAvoided: v.boolean(),
     sweetsControlled: v.boolean(),
+    avoidArtificialSweeteners: v.optional(v.boolean()),
     gutHealthSupport: v.boolean(),
     workoutDone: v.boolean(),
     workoutType: v.optional(v.string()),

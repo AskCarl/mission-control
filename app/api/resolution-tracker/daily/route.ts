@@ -16,6 +16,7 @@ export async function POST(req: Request) {
       fastingDone: payload.fastingDone,
       fakeSugarAvoided: payload.fakeSugarAvoided,
       sweetsControlled: payload.sweetsControlled,
+      avoidArtificialSweeteners: payload.avoidArtificialSweeteners,
       gutHealthSupport: payload.gutHealthSupport,
       workoutDone: payload.workoutDone,
       workoutType: payload.workoutType ?? undefined,

@@ -169,6 +169,7 @@ export const upsertDailyLog = mutation({
     fastingDone: v.boolean(),
     fakeSugarAvoided: v.boolean(),
     sweetsControlled: v.boolean(),
+    avoidArtificialSweeteners: v.boolean(),
     gutHealthSupport: v.boolean(),
     workoutDone: v.boolean(),
     workoutType: v.optional(v.string()),
@@ -194,6 +195,7 @@ export const upsertDailyLog = mutation({
       fastingDone: args.fastingDone,
       fakeSugarAvoided: args.fakeSugarAvoided,
       sweetsControlled: args.sweetsControlled,
+      avoidArtificialSweeteners: args.avoidArtificialSweeteners,
       gutHealthSupport: args.gutHealthSupport,
       workoutDone: args.workoutDone,
       workoutType: args.workoutType,
@@ -336,8 +338,14 @@ export const getDashboard = query({
     };
 
     lastSeven.forEach((log) => {
-      const nutritionHits = [log.antiInflammatory, log.fakeSugarAvoided, log.sweetsControlled, log.gutHealthSupport].filter(Boolean).length;
-      ringTotals.nutrition += nutritionHits / 4;
+      const nutritionHits = [
+        log.antiInflammatory,
+        log.fakeSugarAvoided,
+        log.sweetsControlled,
+        log.avoidArtificialSweeteners ?? false,
+        log.gutHealthSupport,
+      ].filter(Boolean).length;
+      ringTotals.nutrition += nutritionHits / 5;
       const fitnessHits = [log.workoutDone, log.lowImpactFlex].filter(Boolean).length;
       ringTotals.fitness += fitnessHits / 2;
       ringTotals.finance += log.frugalDay ? 1 : 0;
@@ -435,8 +443,19 @@ export const getWeekly = query({
 
     if (lastSeven.length > 0) {
       const nutritionAvg =
-        lastSeven.reduce((acc, log) => acc + ([log.antiInflammatory, log.fakeSugarAvoided, log.sweetsControlled, log.gutHealthSupport].filter(Boolean).length / 4), 0) /
-        lastSeven.length;
+        lastSeven.reduce(
+          (acc, log) =>
+            acc +
+            ([
+              log.antiInflammatory,
+              log.fakeSugarAvoided,
+              log.sweetsControlled,
+              log.avoidArtificialSweeteners ?? false,
+              log.gutHealthSupport,
+            ].filter(Boolean).length /
+              5),
+          0
+        ) / lastSeven.length;
       const fitnessAvg =
         lastSeven.reduce((acc, log) => acc + ([log.workoutDone, log.lowImpactFlex].filter(Boolean).length / 2), 0) / lastSeven.length;
       const financeAvg = lastSeven.reduce((acc, log) => acc + (log.frugalDay ? 1 : 0), 0) / lastSeven.length;

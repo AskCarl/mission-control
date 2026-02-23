@@ -67,6 +67,7 @@ export type DailyCheckinPayload = {
   fastingDone: boolean;
   fakeSugarAvoided: boolean;
   sweetsControlled: boolean;
+  avoidArtificialSweeteners: boolean;
   gutHealthSupport: boolean;
   workoutDone: boolean;
   workoutType: string | null;
