@@ -8,6 +8,8 @@ import sys
 import json
 import base64
 import datetime
+import random
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -19,6 +21,18 @@ if not API_KEY_ID:
 PRIVATE_KEY_PATH = Path(__file__).parent.parent / "vault" / "kalshi_private_key.pem"
 BASE_URL = "https://api.elections.kalshi.com"  # Production
 # BASE_URL = "https://demo-api.kalshi.co"  # Demo
+
+MAX_RETRIES = 3
+BASE_BACKOFF_SECONDS = 0.5
+MAX_BACKOFF_SECONDS = 6.0
+
+def _is_retryable_status(code: int) -> bool:
+    return code == 429 or 500 <= code <= 599
+
+def _backoff_delay(attempt: int) -> float:
+    base = min(MAX_BACKOFF_SECONDS, BASE_BACKOFF_SECONDS * (2 ** (attempt - 1)))
+    jitter = random.uniform(0, base * 0.3)
+    return base + jitter
 
 def load_private_key():
     """Load RSA private key from file"""
@@ -78,14 +92,25 @@ def make_request(method: str, path: str, data: dict = None) -> dict:
     
     req = urllib.request.Request(url, data=req_data, headers=headers, method=method)
     
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            return json.loads(response.read())
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8') if e.fp else str(e)
-        return {"error": f"HTTP {e.code}: {error_body}"}
-    except Exception as e:
-        return {"error": str(e)}
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                return json.loads(response.read())
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8') if e.fp else str(e)
+            if _is_retryable_status(e.code) and attempt < MAX_RETRIES:
+                delay = _backoff_delay(attempt)
+                print(f"[kalshi] HTTP {e.code} retrying in {delay:.2f}s (attempt {attempt}/{MAX_RETRIES})")
+                time.sleep(delay)
+                continue
+            return {"error": f"HTTP {e.code}: {error_body}"}
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                delay = _backoff_delay(attempt)
+                print(f"[kalshi] Request error retrying in {delay:.2f}s (attempt {attempt}/{MAX_RETRIES}): {e}")
+                time.sleep(delay)
+                continue
+            return {"error": str(e)}
 
 def get_balance():
     """Get account balance"""

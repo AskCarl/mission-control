@@ -13,6 +13,9 @@ import sys
 import json
 import datetime
 import urllib.request
+import urllib.error
+import time
+import random
 from pathlib import Path
 
 # Import auth layer from kalshi.py (same directory — single source of truth for auth)
@@ -26,6 +29,16 @@ TRADE_LOG = Path(os.environ.get(
     str(Path(__file__).parent.parent / "memory" / "kalshi-btc-trades.md"),
 ))
 DRY_RUN = os.environ.get("KALSHI_DRY_RUN", "false").lower() == "true"
+
+BTC_CACHE_PATH = Path(os.environ.get(
+    "BTC_CACHE_PATH",
+    str(Path(__file__).parent.parent / "memory" / "kalshi-btc-cache.json"),
+))
+BTC_CACHE_TTL_SECONDS = int(os.environ.get("BTC_CACHE_TTL_SECONDS", "300"))
+
+MAX_RETRIES = 3
+BASE_BACKOFF_SECONDS = 0.5
+MAX_BACKOFF_SECONDS = 6.0
 
 # Position sizing
 MIN_BET = 100  # dollars
@@ -68,6 +81,60 @@ def _scaled_min_distance(minutes_remaining):
 
 
 # === DATA FETCHING ===
+def _is_retryable_status(code: int) -> bool:
+    return code == 429 or 500 <= code <= 599
+
+def _backoff_delay(attempt: int) -> float:
+    base = min(MAX_BACKOFF_SECONDS, BASE_BACKOFF_SECONDS * (2 ** (attempt - 1)))
+    jitter = random.uniform(0, base * 0.3)
+    return base + jitter
+
+def _fetch_json_with_retry(url: str, timeout: int = 15):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            if _is_retryable_status(e.code) and attempt < MAX_RETRIES:
+                delay = _backoff_delay(attempt)
+                print(f"[btc] HTTP {e.code} retrying in {delay:.2f}s (attempt {attempt}/{MAX_RETRIES})")
+                time.sleep(delay)
+                continue
+            raise
+        except Exception:
+            if attempt < MAX_RETRIES:
+                delay = _backoff_delay(attempt)
+                print(f"[btc] request error retrying in {delay:.2f}s (attempt {attempt}/{MAX_RETRIES})")
+                time.sleep(delay)
+                continue
+            raise
+
+def _write_btc_cache(payload: dict):
+    BTC_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    BTC_CACHE_PATH.write_text(json.dumps({
+        "timestamp": int(time.time()),
+        "data": payload,
+    }))
+
+def _read_btc_cache():
+    if not BTC_CACHE_PATH.exists():
+        return None
+    try:
+        cached = json.loads(BTC_CACHE_PATH.read_text())
+        timestamp = cached.get("timestamp")
+        data = cached.get("data")
+        if not timestamp or not data:
+            return None
+        age = int(time.time()) - int(timestamp)
+        if age > BTC_CACHE_TTL_SECONDS:
+            return None
+        data["_from_cache"] = True
+        data["_cache_age_sec"] = age
+        return data
+    except Exception:
+        return None
+
 def get_btc_data():
     """Fetch BTC price + 1h/24h change + 24h high/low + volume from CoinGecko"""
     try:
@@ -75,19 +142,23 @@ def get_btc_data():
             "https://api.coingecko.com/api/v3/coins/markets"
             "?vs_currency=usd&ids=bitcoin&price_change_percentage=1h,24h"
         )
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read())[0]
-            return {
-                "price": data["current_price"],
-                "change_1h": data.get("price_change_percentage_1h_in_currency") or 0.0,
-                "change_24h": data.get("price_change_percentage_24h") or 0.0,
-                "high_24h": data.get("high_24h") or 0.0,
-                "low_24h": data.get("low_24h") or 0.0,
-                "volume_24h": data.get("total_volume") or 0.0,
-            }
+        data = _fetch_json_with_retry(url, timeout=15)[0]
+        payload = {
+            "price": data["current_price"],
+            "change_1h": data.get("price_change_percentage_1h_in_currency") or 0.0,
+            "change_24h": data.get("price_change_percentage_24h") or 0.0,
+            "high_24h": data.get("high_24h") or 0.0,
+            "low_24h": data.get("low_24h") or 0.0,
+            "volume_24h": data.get("total_volume") or 0.0,
+        }
+        _write_btc_cache(payload)
+        return payload
     except Exception as e:
         print(f"⚠️  BTC data fetch failed: {e}")
+        cached = _read_btc_cache()
+        if cached:
+            print(f"⚠️  Using cached BTC data ({cached.get('_cache_age_sec')}s old)")
+            return cached
         return None
 
 
@@ -305,7 +376,7 @@ def size_position(cost_cents):
     return contracts, round(contracts * cost_cents / 100, 2)
 
 
-def execute_trade(recommendation):
+def execute_trade(recommendation, data_quality=None):
     """Place a live order. Returns trade details dict or None on failure."""
     ticker = recommendation["ticker"]
     action = recommendation["action"]
@@ -327,6 +398,8 @@ def execute_trade(recommendation):
     result = kalshi_request("POST", "/trade-api/v2/portfolio/orders", data)
 
     trade_preview = {**recommendation, "contracts": contracts, "total_cost": f"${total_cost:.2f}"}
+    if data_quality:
+        trade_preview["data_quality"] = data_quality
 
     if "error" not in result:
         order = result.get("order", {})
@@ -367,11 +440,17 @@ def run_monitor():
     # Fetch BTC data
     btc = get_btc_data()
     if not btc:
-        print("❌ Could not fetch BTC data. Exiting.")
-        sys.exit(1)
+        print("❌ Could not fetch BTC data or cache. No trade.")
+        log_trade("NO TRADE", {
+            "reason": "BTC data unavailable (live + cache failed)",
+        })
+        return
 
     print(f"₿  BTC:  ${btc['price']:,.2f}  |  1h: {btc['change_1h']:+.2f}%  |  24h: {btc['change_24h']:+.2f}%")
     print(f"   Range: ${btc['low_24h']:,.0f} – ${btc['high_24h']:,.0f}  |  Vol: ${btc['volume_24h']/1e9:.1f}B")
+    data_quality = "cached" if btc.get("_from_cache") else "live"
+    if btc.get("_from_cache"):
+        print("⚠️  Data quality: cached (degraded)")
 
     # Hard momentum gate
     if abs(btc["change_24h"]) < MIN_24H_MOMENTUM:
@@ -380,6 +459,7 @@ def run_monitor():
             "btc_price": f"${btc['price']:,.2f}",
             "change_24h": f"{btc['change_24h']:+.2f}%",
             "reason": f"24h momentum {btc['change_24h']:+.2f}% below ±{MIN_24H_MOMENTUM}% gate",
+            "data_quality": data_quality,
         })
         return
 
@@ -404,6 +484,7 @@ def run_monitor():
             "change_24h": f"{btc['change_24h']:+.2f}%",
             "signal_score": f"{score}/{len(breakdown)}",
             "reason": f"Insufficient signal confluence (need {MIN_SIGNAL_SCORE})",
+            "data_quality": data_quality,
             **{k: v for k, v in breakdown.items()},
         })
         return
@@ -423,6 +504,7 @@ def run_monitor():
             "btc_price": f"${btc['price']:,.2f}",
             "signal_score": f"{score}/{len(breakdown)}",
             "reason": "No market met MIN_DISTANCE_PCT or MAX_ENTRY_COST filter",
+            "data_quality": data_quality,
         })
         return
 
@@ -442,7 +524,7 @@ def run_monitor():
     ticker = recommendation["ticker"]
     if not DRY_RUN and has_existing_exposure(ticker):
         print(f"\n⚠️  Already have exposure on {ticker} — skipping")
-        log_trade("SKIPPED", {**recommendation, "reason": "Existing order or position"})
+        log_trade("SKIPPED", {**recommendation, "reason": "Existing order or position", "data_quality": data_quality})
         return
 
     # Strip internal metadata key before passing to execution/logging
@@ -455,7 +537,7 @@ def run_monitor():
         print(f"   Would place: {contracts}x {recommendation['action'].split()[1]} {ticker} @ {recommendation['cost']} (${total_cost:.2f})")
     else:
         print(f"\n⚡ Executing trade...")
-        trade = execute_trade(recommendation)
+        trade = execute_trade(recommendation, data_quality=data_quality)
         if trade:
             print(f"✅ Order placed: {trade['contracts']} contracts @ {recommendation['cost']}")
             print(f"   Order ID: {trade.get('order_id')}")
