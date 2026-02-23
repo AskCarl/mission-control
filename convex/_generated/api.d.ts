@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as memory from "../memory.js";
 import type * as office from "../office.js";
 import type * as research from "../research.js";
+import type * as resolutionTracker from "../resolutionTracker.js";
 import type * as seed from "../seed.js";
 import type * as smoke from "../smoke.js";
 import type * as team from "../team.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   memory: typeof memory;
   office: typeof office;
   research: typeof research;
+  resolutionTracker: typeof resolutionTracker;
   seed: typeof seed;
   smoke: typeof smoke;
   team: typeof team;

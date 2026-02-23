@@ -35,6 +35,7 @@ yarn-error.log*
 
 # ARA runtime state
 .ara-tasks.json
+.claude/
 
 # vercel
 .vercel
