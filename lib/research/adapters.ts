@@ -425,8 +425,8 @@ async function runPerplexityAdapter(input: {
 // ---------------------------------------------------------------------------
 
 const DEEPSEEK_API_BASE = "https://api.deepseek.com";
-const DEEPSEEK_MODEL = "deepseek-chat";
-const DEEPSEEK_TIMEOUT_MS = 60_000;
+const DEEPSEEK_MODEL = "deepseek-reasoner";
+const DEEPSEEK_TIMEOUT_MS = 120_000;
 
 class DeepSeekAdapterError extends Error {
   constructor(
@@ -547,13 +547,10 @@ async function runDeepSeekAdapter(input: {
       },
       body: JSON.stringify({
         model: DEEPSEEK_MODEL,
-        response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: buildDeepSeekSystemPrompt() },
-          { role: "user", content: buildDeepSeekUserPrompt(input) },
+          { role: "user", content: buildDeepSeekSystemPrompt() + "\n\n" + buildDeepSeekUserPrompt(input) },
         ],
-        temperature: 0.3,
-        max_tokens: 2048,
+        max_tokens: 4096,
       }),
       signal: controller.signal,
     });
@@ -578,19 +575,25 @@ async function runDeepSeekAdapter(input: {
   }
 
   const json = await res.json();
-  const content: unknown = json?.choices?.[0]?.message?.content;
+  const message = json?.choices?.[0]?.message;
+  const content: unknown = message?.content;
+  const reasoningContent: string | undefined = message?.reasoning_content;
   const tokensIn: number | undefined = json?.usage?.prompt_tokens;
   const tokensOut: number | undefined = json?.usage?.completion_tokens;
+  const reasoningTokens: number | undefined = json?.usage?.completion_tokens_details?.reasoning_tokens;
 
   console.log(
-    `[deepseek-adapter] ok latency=${latencyMs}ms in=${tokensIn ?? "?"} out=${tokensOut ?? "?"}`
+    `[deepseek-adapter] ok latency=${latencyMs}ms in=${tokensIn ?? "?"} out=${tokensOut ?? "?"} reasoning=${reasoningTokens ?? "?"}`
   );
+  if (reasoningContent) {
+    console.log(`[deepseek-adapter] reasoning length=${reasoningContent.length} chars`);
+  }
 
-  let parsed: unknown;
-  try {
-    parsed = typeof content === "string" ? JSON.parse(content) : content;
-  } catch {
-    throw new DeepSeekAdapterError("Failed to parse DeepSeek JSON response", "VALIDATION_ERROR");
+  const rawStr = typeof content === "string" ? content : JSON.stringify(content);
+  const parsed = extractJson(rawStr);
+
+  if (parsed === null) {
+    throw new DeepSeekAdapterError("Failed to extract JSON from DeepSeek R1 response", "VALIDATION_ERROR");
   }
 
   return validateDeepSeekOutput(parsed);
