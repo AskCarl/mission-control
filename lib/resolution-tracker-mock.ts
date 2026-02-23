@@ -22,6 +22,11 @@ export const dailySnapshot: ResolutionDashboard = {
     alcoholWeeklyLimit: 1,
     workoutTargetDays: 5,
   },
+  incomeStream: {
+    name: "AI-Driven Business Build",
+    status: "research",
+    nextStep: "Define first MVP offer + outreach list",
+  },
 };
 
 export const weeklySnapshot: ResolutionWeekly = {

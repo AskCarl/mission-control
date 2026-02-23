@@ -23,7 +23,7 @@ export default function ResolutionTrackerDashboard() {
         <h2 className="text-2xl font-semibold">{snapshot.dateLabel}</h2>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Panel>
           <p className="text-sm text-slate-400">Today Score</p>
           <p className="text-3xl font-semibold">{snapshot.todayScore}</p>
@@ -37,6 +37,12 @@ export default function ResolutionTrackerDashboard() {
           <p className="text-sm text-slate-400">This Week</p>
           <p className="text-3xl font-semibold">{snapshot.weekProgressPercent}%</p>
           <p className="text-xs text-slate-500">Progress to weekly targets</p>
+        </Panel>
+        <Panel>
+          <p className="text-sm text-slate-400">New Income Stream</p>
+          <p className="text-lg font-semibold">{snapshot.incomeStream.name}</p>
+          <p className="text-xs text-slate-500">Status: {snapshot.incomeStream.status}</p>
+          <p className="text-xs text-slate-500">Next: {snapshot.incomeStream.nextStep}</p>
         </Panel>
       </div>
 

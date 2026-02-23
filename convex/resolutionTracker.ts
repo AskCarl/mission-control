@@ -363,6 +363,12 @@ export const getDashboard = query({
       return "Stay consistent and log tomorrow";
     })();
 
+    const latestReview = await ctx.db
+      .query("resolutionWeeklyReviews")
+      .withIndex("by_profile_week", (q) => q.eq("profileId", profile._id))
+      .order("desc")
+      .first();
+
     return {
       dateLabel: today,
       todayScore: todayLog?.dailyScore ?? 0,
@@ -384,6 +390,11 @@ export const getDashboard = query({
       settings: {
         alcoholWeeklyLimit: settings?.alcoholWeeklyLimit ?? defaultSettings().alcoholWeeklyLimit,
         workoutTargetDays: settings?.workoutTargetDays ?? defaultSettings().workoutTargetDays,
+      },
+      incomeStream: {
+        name: latestReview?.activeCashflowProject ?? "AI-Driven Business Build",
+        status: latestReview?.projectStatus ?? "research",
+        nextStep: latestReview?.nextStep ?? "Define next income stream milestone",
       },
     };
   },

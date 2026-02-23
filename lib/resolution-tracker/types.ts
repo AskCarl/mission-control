@@ -13,6 +13,11 @@ export type ResolutionDashboard = {
     alcoholWeeklyLimit: number;
     workoutTargetDays: number;
   };
+  incomeStream: {
+    name: string;
+    status: string;
+    nextStep: string;
+  };
 };
 
 export type ResolutionWeekly = {
