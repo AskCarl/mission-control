@@ -131,4 +131,77 @@ export default defineSchema({
     .index("by_taskId", ["taskId"])
     .index("by_state", ["state"])
     .index("by_idempotencyKey", ["idempotencyKey"]),
+
+  resolutionProfiles: defineTable({
+    name: v.string(),
+    timezone: v.string(),
+    weightTarget: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_name", ["name"]),
+
+  resolutionDailyLogs: defineTable({
+    profileId: v.id("resolutionProfiles"),
+    localDate: v.string(),
+    antiInflammatory: v.boolean(),
+    fastingDone: v.boolean(),
+    fakeSugarAvoided: v.boolean(),
+    sweetsControlled: v.boolean(),
+    gutHealthSupport: v.boolean(),
+    workoutDone: v.boolean(),
+    workoutType: v.optional(v.string()),
+    lowImpactFlex: v.boolean(),
+    alcoholDrinks: v.number(),
+    nicotineLevel: v.number(),
+    readingMinutes: v.number(),
+    frugalDay: v.boolean(),
+    notes: v.optional(v.string()),
+    dailyScore: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_profileId", ["profileId"])
+    .index("by_profile_date", ["profileId", "localDate"]),
+
+  resolutionWeeklyReviews: defineTable({
+    profileId: v.id("resolutionProfiles"),
+    weekStart: v.string(),
+    activeCashflowProject: v.string(),
+    projectStatus: v.string(),
+    nextStep: v.string(),
+    workedWell: v.optional(v.string()),
+    improveNext: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_profile_week", ["profileId", "weekStart"]),
+
+  resolutionWeightLogs: defineTable({
+    profileId: v.id("resolutionProfiles"),
+    localDate: v.string(),
+    weightLbs: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_profileId", ["profileId"])
+    .index("by_profile_date", ["profileId", "localDate"]),
+
+  resolutionSettings: defineTable({
+    profileId: v.id("resolutionProfiles"),
+    fastingDays: v.array(v.string()),
+    workoutTargetDays: v.number(),
+    alcoholWeeklyLimit: v.number(),
+    readingMonthlyMinutesTarget: v.number(),
+    reminderMorning: v.string(),
+    reminderEvening: v.string(),
+    scoreWeights: v.optional(
+      v.object({
+        nutrition: v.number(),
+        fitness: v.number(),
+        recovery: v.number(),
+        growth: v.number(),
+        finance: v.number(),
+      })
+    ),
+    scoreWeightsVersion: v.number(),
+    updatedAt: v.number(),
+  }).index("by_profileId", ["profileId"]),
 });
