@@ -18,7 +18,12 @@ from pathlib import Path
 API_KEY_ID = os.environ.get("KALSHI_API_KEY_ID")
 if not API_KEY_ID:
     raise EnvironmentError("KALSHI_API_KEY_ID is not set — add it to your environment.")
-PRIVATE_KEY_PATH = Path(__file__).parent.parent / "vault" / "kalshi_private_key.pem"
+PRIVATE_KEY_PATH = Path(
+    os.environ.get(
+        "KALSHI_PRIVATE_KEY_PATH",
+        str(Path(__file__).parent.parent / "vault" / "kalshi_private_key.pem"),
+    )
+)
 BASE_URL = "https://api.elections.kalshi.com"  # Production
 # BASE_URL = "https://demo-api.kalshi.co"  # Demo
 
